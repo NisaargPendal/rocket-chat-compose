@@ -1,0 +1,25 @@
+services:
+  mongo:
+    image: mongo:5
+    volumes:
+      - ./data/db:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongo --quiet localhost:27017"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rocketchat:
+    image: rocketchat/rocket.chat:latest
+    environment:
+      - PORT=3000
+      - ROOT_URL=http://localhost:3000
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+    ports:
+      - 3000:3000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
